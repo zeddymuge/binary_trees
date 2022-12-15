@@ -1,122 +1,58 @@
 #include "binary_trees.h"
-
-levelorder_queue_t *create_node(binary_tree_t *node);
-void free_queue(levelorder_queue_t *head);
-void pint_push(binary_tree_t *node, levelorder_queue_t *head,
-		levelorder_queue_t **tail, void (*func)(int));
-void pop(levelorder_queue_t **head);
-void binary_tree_levelorder(const binary_tree_t *tree, void (*func)(int));
-
 /**
- * create_node - Creates a new levelorder_queue_t node.
- * @node: The binary tree node for the new node to contain.
- *
- * Return: If an error occurs, NULL.
- *         Otherwise, a pointer to the new node.
- */
-levelorder_queue_t *create_node(binary_tree_t *node)
-{
-	levelorder_queue_t *new;
-
-	new = malloc(sizeof(levelorder_queue_t));
-	if (new == NULL)
-		return (NULL);
-
-	new->node = node;
-	new->next = NULL;
-
-	return (new);
-}
-
-/**
- * free_queue - Frees a levelorder_queue_t queue.
- * @head: A pointer to the head of the queue.
- */
-void free_queue(levelorder_queue_t *head)
-{
-	levelorder_queue_t *tmp;
-
-	while (head != NULL)
-	{
-		tmp = head->next;
-		free(head);
-		head = tmp;
-	}
-}
-
-/**
- * pint_push - Runs a function on a given binary tree node and
- *             pushes its children into a levelorder_queue_t queue.
- * @node: The binary tree node to print and push.
- * @head: A double pointer to the head of the queue.
- * @tail: A double pointer to the tail of the queue.
- * @func: A pointer to the function to call on @node.
- *
- * Description: Upon malloc failure, exits with a status code of 1.
- */
-void pint_push(binary_tree_t *node, levelorder_queue_t *head,
-		levelorder_queue_t **tail, void (*func)(int))
-{
-	levelorder_queue_t *new;
-
-	func(node->n);
-	if (node->left != NULL)
-	{
-		new = create_node(node->left);
-		if (new == NULL)
-		{
-			free_queue(head);
-			exit(1);
-		}
-		(*tail)->next = new;
-		*tail = new;
-	}
-	if (node->right != NULL)
-	{
-		new = create_node(node->right);
-		if (new == NULL)
-		{
-			free_queue(head);
-			exit(1);
-		}
-		(*tail)->next = new;
-		*tail = new;
-	}
-}
-
-/**
- * pop - Pops the head of a levelorder_queue_t queue.
- * @head: A double pointer to the head of the queue.
- */
-void pop(levelorder_queue_t **head)
-{
-	levelorder_queue_t *tmp;
-
-	tmp = (*head)->next;
-	free(*head);
-	*head = tmp;
-}
-
-/**
- * binary_tree_levelorder - Traverses a binary tree using
- *                          level-order traversal.
- * @tree: A pointer to the root node of the tree to traverse.
- * @func: A pointer to a function to call for each node.
+ * binary_tree_levelorder - function that goes through a binary tree
+ * using level-order traversal.
+ * @tree: root node.
+ * @func: function pointer to print the node value.
  */
 void binary_tree_levelorder(const binary_tree_t *tree, void (*func)(int))
 {
-	levelorder_queue_t *head, *tail;
+	size_t tree_h = 0, level;
 
-	if (tree == NULL || func == NULL)
+	if (!tree || !func)
 		return;
 
-	head = tail = create_node((binary_tree_t *)tree);
-	if (head == NULL)
+	tree_h = tree_height(tree);
+	for (level = 0; level <= tree_h; level++)
+		print_level(tree, level, func);
+
+}
+/**
+ * tree_height - function that measures the height of a sub-tree.
+ * @tree: root node.
+ * Return: the height of the tree or -1 if there is no tree.
+ */
+int tree_height(const binary_tree_t *tree)
+{
+	int left_height = 0, right_height = 0;
+
+	if (!tree)
+		return (-1);
+
+	if (tree->left)
+		left_height = tree_height(tree->left) + 1;
+	if (tree->right)
+		right_height = tree_height(tree->right) + 1;
+
+	if (left_height >= right_height)
+		return (left_height);
+	return (right_height);
+}
+/**
+ * print_level - function to print the nodes at the level.
+ * @tree: root node.
+ * @level: level of the node.
+ * @func: function pointer to print the node value.
+ */
+void print_level(const binary_tree_t *tree, size_t level, void (*func)(int))
+{
+	if (!tree)
 		return;
 
-	while (head != NULL)
-	{
-		pint_push(head->node, head, &tail, func);
-		pop(&head);
-	}
+	if (!level)
+		func(tree->n);
+
+	print_level(tree->left, level - 1, func);
+	print_level(tree->right, level - 1, func);
+
 }
